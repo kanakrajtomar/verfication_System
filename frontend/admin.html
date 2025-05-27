@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Panel - Document Verification</title>
+    <style>
+      table,
+      th,
+      td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        padding: 8px;
+      }
+      button {
+        margin: 0 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Document Verification Requests</h2>
+    <table id="verificationTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Image</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <p id="message"></p>
+
+    <script>
+      const tableBody = document.querySelector("#verificationTable tbody");
+      const message = document.getElementById("message");
+
+      async function fetchVerifications() {
+        message.textContent = "Loading...";
+        try {
+          const res = await fetch("http://localhost:3000/admin/verifications");
+          const data = await res.json();
+          tableBody.innerHTML = "";
+          data.forEach((item) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+          <td>${item.id}</td>
+          <td>${item.email}</td>
+          <td>${item.phone}</td>
+          <td><img src="${item.image_url}" alt="doc" width="80"/></td>
+          <td>${item.status}</td>
+          <td>
+            <button onclick="updateStatus(${item.id}, 'approve')">Approve</button>
+            <button onclick="updateStatus(${item.id}, 'reject')">Reject</button>
+          </td>
+        `;
+            tableBody.appendChild(tr);
+          });
+          message.textContent = "";
+        } catch (err) {
+          message.textContent = "Failed to load data";
+        }
+      }
+
+      async function updateStatus(id, action) {
+        try {
+          const res = await fetch(
+            `http://localhost:3000/admin/verifications/${id}/${action}`,
+            {
+              method: "POST",
+            }
+          );
+          const data = await res.json();
+          if (res.ok) {
+            message.style.color = "green";
+            message.textContent = data.message;
+            fetchVerifications();
+          } else {
+            message.style.color = "red";
+            message.textContent = data.error || "Action failed";
+          }
+        } catch (err) {
+          message.style.color = "red";
+          message.textContent = "Error performing action";
+        }
+      }
+
+      fetchVerifications();
+    </script>
+  </body>
+</html>

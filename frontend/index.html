@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>User Verification</title>
+  </head>
+  <body>
+    <h2>User Verification Form</h2>
+    <form id="verificationForm">
+      <label>Email:</label><br />
+      <input type="email" name="email" required /><br /><br />
+
+      <label>Phone:</label><br />
+      <input type="tel" name="phone" required /><br /><br />
+
+      <label>Upload Image:</label><br />
+      <input type="file" name="image" accept="image/*" required /><br /><br />
+
+      <button type="submit">Submit Verification</button>
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+      const form = document.getElementById("verificationForm");
+      const message = document.getElementById("message");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        message.textContent = "Submitting...";
+
+        const formData = new FormData(form);
+
+        try {
+          const response = await fetch(
+            "http://localhost:3000/submit-verification",
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          const data = await response.json();
+
+          if (response.ok) {
+            message.style.color = "green";
+            message.textContent = data.message;
+            form.reset();
+          } else {
+            message.style.color = "red";
+            message.textContent = data.error || "Submission failed";
+          }
+        } catch (err) {
+          message.style.color = "red";
+          message.textContent = "Error submitting form";
+        }
+      });
+    </script>
+  </body>
+</html>
