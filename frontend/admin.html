@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -90,6 +90,458 @@
       }
 
       fetchVerifications();
+    </script>
+  </body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel - Document Verification</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+        color: #e4e4e7;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #60a5fa, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 8px;
+      }
+
+      .header p {
+        color: #a1a1aa;
+        font-size: 1.1rem;
+      }
+
+      .table-container {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 16px;
+        text-align: left;
+        font-weight: 600;
+        color: #f4f4f5;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      td {
+        padding: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        vertical-align: middle;
+      }
+
+      tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: capitalize;
+      }
+
+      .status.pending {
+        background: rgba(251, 191, 36, 0.2);
+        color: #fbbf24;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+      }
+
+      .status.approved {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+      }
+
+      .status.rejected {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .document-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .document-image:hover {
+        transform: scale(1.1);
+        border-color: #60a5fa;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .btn-approve {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: white;
+      }
+
+      .btn-approve:hover {
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        transform: translateY(-1px);
+      }
+
+      .btn-reject {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+      }
+
+      .btn-reject:hover {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        transform: translateY(-1px);
+      }
+
+      .message {
+        margin-top: 20px;
+        padding: 16px;
+        border-radius: 12px;
+        font-weight: 500;
+        text-align: center;
+        display: none;
+      }
+
+      .message.success {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+      }
+
+      .message.error {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      .message.loading {
+        background: rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+      }
+
+      .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-width: 90%;
+        max-height: 90%;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .modal-image {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .close {
+        position: absolute;
+        top: 15px;
+        right: 25px;
+        color: white;
+        font-size: 35px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1001;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .close:hover {
+        background: rgba(239, 68, 68, 0.8);
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #3b82f6;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          padding: 10px;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .table-container {
+          overflow-x: auto;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Document Verification</h1>
+        <p>Admin Dashboard</p>
+      </div>
+
+      <div class="table-container">
+        <table id="verificationTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Document</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="message" class="message"></div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="modal">
+      <span class="close">&times;</span>
+      <div class="modal-content">
+        <img
+          id="modalImage"
+          class="modal-image"
+          src="/placeholder.svg"
+          alt="Document"
+        />
+      </div>
+    </div>
+
+    <script>
+      const tableBody = document.querySelector("#verificationTable tbody");
+      const message = document.getElementById("message");
+      const modal = document.getElementById("imageModal");
+      const modalImage = document.getElementById("modalImage");
+      const closeModal = document.querySelector(".close");
+
+      function showMessage(text, type) {
+        message.textContent = text;
+        message.className = `message ${type}`;
+        message.style.display = "block";
+
+        if (type !== "loading") {
+          setTimeout(() => {
+            message.style.display = "none";
+          }, 5000);
+        }
+      }
+
+      function openImageModal(imageSrc) {
+        modalImage.src = imageSrc;
+        modal.style.display = "block";
+      }
+
+      closeModal.onclick = function () {
+        modal.style.display = "none";
+      };
+
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      };
+
+      async function fetchVerifications() {
+        showMessage("Loading verification requests...", "loading");
+        try {
+          const res = await fetch("http://localhost:3000/admin/verifications");
+          const data = await res.json();
+
+          tableBody.innerHTML = "";
+
+          if (data.length === 0) {
+            tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px; color: #a1a1aa;">
+                                No verification requests found
+                            </td>
+                        </tr>
+                    `;
+          } else {
+            data.forEach((item) => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                            <td><strong>#${item.id}</strong></td>
+                            <td>${item.email}</td>
+                            <td>${item.phone}</td>
+                            <td>
+                                <img src="${item.image_url}" 
+                                     alt="Document" 
+                                     class="document-image"
+                                     onclick="openImageModal('${
+                                       item.image_url
+                                     }')"
+                                     title="Click to view full size">
+                            </td>
+                            <td><span class="status ${item.status}">${
+                item.status
+              }</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn btn-approve" onclick="updateStatus(${
+                                      item.id
+                                    }, 'approve')" ${
+                item.status !== "pending" ? "disabled" : ""
+              }>
+                                        Approve
+                                    </button>
+                                    <button class="btn btn-reject" onclick="updateStatus(${
+                                      item.id
+                                    }, 'reject')" ${
+                item.status !== "pending" ? "disabled" : ""
+              }>
+                                        Reject
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+              tableBody.appendChild(tr);
+            });
+          }
+
+          message.style.display = "none";
+        } catch (err) {
+          showMessage("Failed to load verification requests", "error");
+        }
+      }
+
+      async function updateStatus(id, action) {
+        const button = event.target;
+        const originalText = button.textContent;
+        button.innerHTML = '<span class="loading-spinner"></span>';
+        button.disabled = true;
+
+        try {
+          const res = await fetch(
+            `http://localhost:3000/admin/verifications/${id}/${action}`,
+            { method: "POST" }
+          );
+          const data = await res.json();
+
+          if (res.ok) {
+            showMessage(
+              data.message || `Document ${action}d successfully!`,
+              "success"
+            );
+            fetchVerifications();
+          } else {
+            showMessage(data.error || `Failed to ${action} document`, "error");
+          }
+        } catch (err) {
+          showMessage(`Error performing ${action} action`, "error");
+        } finally {
+          button.textContent = originalText;
+          button.disabled = false;
+        }
+      }
+
+      // Initialize
+      fetchVerifications();
+
+      // Auto-refresh every 30 seconds
+      setInterval(fetchVerifications, 30000);
     </script>
   </body>
 </html>
